@@ -1,34 +1,44 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Param, Delete, Res, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { LoginDTO } from './dto/loginDTO';
+import { UnauthorizedException } from '@nestjs/common';
+import { Response, Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('login')
+  async login(
+    @Res() res: Response,
+    @Req() req: Request,
+    @Body() loginDTO: LoginDTO) {
+    try {
+      const token = await this.authService.validateUser(loginDTO);
+      if (!token) {
+        throw new UnauthorizedException();
+      }
+      res.cookie('access_token', token.access_token, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+      });
+
+      res.status(200).json({
+        access_token: token.access_token,
+        message: 'Login successful',
+      });
+      
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
+  @Delete('logout')
+  remove(
+    @Req() req: Request,
+  )
+    {
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
   }
 }

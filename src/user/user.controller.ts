@@ -13,7 +13,7 @@ export class UserController {
   }
 
   @Get('profile')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param('username') id: string) {
+    return this.userService.findOne('username');
   }
 }

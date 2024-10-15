@@ -27,13 +27,13 @@ export class UserService {
       throw new BadRequestException(error);
     } 
   }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  
+  findOne(username: string) {
+    try {
+      return this.UserModule.findOne({ username });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
